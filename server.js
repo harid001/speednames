@@ -10,6 +10,9 @@ const {
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+// Set BIND_HOST=127.0.0.1 when running behind a same-host reverse proxy or
+// Cloudflare Tunnel so the application port is not reachable from the network.
+const BIND_HOST = process.env.BIND_HOST || '0.0.0.0';
 
 // Trust a loopback reverse proxy (e.g. cloudflared / nginx on the same host) so
 // req.protocol reflects the original scheme via X-Forwarded-Proto.
@@ -350,7 +353,7 @@ app.post('/api/timer/reset', (req, res) => {
   res.json({ ok: true });
 });
 
-app.listen(PORT, '0.0.0.0', () => {
+app.listen(PORT, BIND_HOST, () => {
   console.log('Speednames server running:');
   console.log(`  Local:   http://localhost:${PORT}`);
   localIPs().forEach(ip => console.log(`  Network: http://${ip}:${PORT}`));

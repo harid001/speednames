@@ -2,6 +2,8 @@
 
 A tiny self-hosted server for **Speednames** — a fast party variant of [Codenames](https://en.wikipedia.org/wiki/Codenames_(board_game)) with a shared TV/board view, a private spymaster key, a per-turn timer, and an optional drinking mechanic. Anyone can create a game and get two shareable links; games are isolated from each other, so many groups can play at once. State (words, colors, reveals, timer, shots) lives in a SQLite file (`speednames.db`) created automatically next to the server, so games survive restarts.
 
+**Play the public version: [speed-names.com](https://speed-names.com)**
+
 ## Setup
 
 1. Install [Node.js](https://nodejs.org) (v18+).
@@ -23,6 +25,7 @@ Two conveniences:
 Environment variables (both optional):
 
 - `PORT` — port to listen on (default `3000`).
+- `BIND_HOST` — interface to listen on (default `0.0.0.0`). Use `127.0.0.1` when a same-host reverse proxy or Cloudflare Tunnel is the only intended entry point.
 - `BASE_URL` — force a canonical origin, e.g. `https://speednames.example.com`. Only needed if request-derivation ever guesses wrong (unusual setups); leave it unset behind Cloudflare Tunnel.
 
 ## Using it
@@ -39,23 +42,28 @@ Environment variables (both optional):
 - **Winning / game over:** when a team's tiles are all revealed, the banner announces the win; revealing the assassin ends the game with a game-over banner. (This is display only — start a new round with "Play again".)
 - **Play again:** the share hub's "Play again" button deals a new board (fresh words + colors, cleared reveals/timer/shots) while keeping the same links, so the group doesn't need to re-share.
 
-## Deploying to a VPS
+## Production deployment
 
-1. Copy the project to the server and `npm install` (this compiles `better-sqlite3`; the box needs a C toolchain — `build-essential` on Debian/Ubuntu).
-2. Run it under a process manager (e.g. `pm2`, `systemd`):
-   ```bash
-   PORT=8080 node server.js
-   ```
-3. Expose it. With **Cloudflare Tunnel**, point a public hostname at the local port — no ports opened on the VPS, TLS handled by Cloudflare, and links are derived automatically (no `BASE_URL` needed):
-   ```yaml
-   # ~/.cloudflared/config.yml
-   ingress:
-     - hostname: speednames.example.com
-       service: http://localhost:8080
-     - service: http_status:404
-   ```
-   (Or put any reverse proxy — nginx/Caddy — with TLS in front of the port.)
-4. **Rate-limit game creation at the edge.** There's no auth, so add a Cloudflare WAF rate-limiting rule scoped to `POST /new` (e.g. a handful of requests per IP per minute) to stop someone spamming new games. The free plan includes a basic rate-limiting rule.
+The public instance is [speed-names.com](https://speed-names.com). For a similar deployment:
+
+1. Install dependencies with `npm ci --omit=dev`. `better-sqlite3` may require a C toolchain (`build-essential` on Debian/Ubuntu).
+2. Run the app with a service manager such as `systemd`, binding it to loopback when the tunnel runs on the same host:
+
+```bash
+NODE_ENV=production PORT=8080 BIND_HOST=127.0.0.1 node server.js
+```
+
+3. Use a [Cloudflare Tunnel](https://developers.cloudflare.com/tunnel/setup/) to route your hostname to the local app:
+
+```yaml
+ingress:
+  - hostname: speednames.example.com
+    service: http://127.0.0.1:8080
+  - service: http_status:404
+```
+
+4. Keep `speednames.db*` on persistent storage and out of deployment cleanup. Do not open inbound HTTP/HTTPS ports just for the tunnel, and keep tunnel credentials out of the repository.
+5. Because game creation has no authentication, consider an edge rate limit on `POST /new`.
 
 ## Data / reset
 
