@@ -1,0 +1,13 @@
+# Dependencies
+node_modules/
+
+# SQLite database (created at runtime)
+speednames.db
+speednames.db-shm
+speednames.db-wal
+
+# Env / secrets
+.env
+
+# OS
+.DS_Store

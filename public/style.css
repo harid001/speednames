@@ -1,0 +1,305 @@
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700&family=Inter:wght@400;600;800&display=swap');
+
+:root {
+  --bg: #0c1016;
+  --panel: #141a23;
+  --line: #26303c;
+  --text: #e8edf3;
+  --muted: #8a97a6;
+  --accent: #e0a84f;
+  --team-a: #d6543f;
+  --team-b: #2f7de0;
+  --neutral: #5c6774;
+  --assassin: #14171b;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: radial-gradient(circle at 20% 0%, #161d27 0%, var(--bg) 55%);
+  color: var(--text);
+  font-family: 'Inter', system-ui, sans-serif;
+  min-height: 100vh;
+}
+
+.wrap {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 32px 24px 64px;
+}
+
+.wrap.narrow { max-width: 560px; }
+
+h1 {
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  margin: 0 0 6px;
+}
+
+.sub { color: var(--muted); font-size: 14px; margin: 0 0 24px; }
+
+code {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 2px 8px;
+  font-family: 'JetBrains Mono', monospace;
+  color: var(--accent);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 20px;
+}
+
+.card {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 20px;
+}
+
+.card h2 { margin: 0 0 4px; font-size: 18px; }
+
+.status { color: var(--muted); font-size: 13px; margin: 0 0 14px; }
+
+.linkrow { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 18px; }
+
+.btn {
+  display: inline-block;
+  background: var(--accent);
+  color: #1a1206;
+  font-weight: 700;
+  font-size: 13px;
+  text-decoration: none;
+  padding: 10px 16px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+}
+
+.btn.ghost {
+  background: transparent;
+  color: var(--text);
+  border: 1px solid var(--line);
+}
+
+.setup-form { display: flex; flex-direction: column; gap: 8px; }
+
+.setup-form label { font-size: 12px; color: var(--muted); margin-top: 6px; }
+
+.setup-form textarea, .setup-form input {
+  background: #0e131a;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 8px 10px;
+  color: var(--text);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  resize: vertical;
+}
+
+.setup-form button { margin-top: 12px; }
+
+/* --- Board / spymaster views --- */
+
+.board-wrap { max-width: 1000px; }
+
+.top-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 18px;
+}
+
+.timer {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 40px;
+  font-weight: 700;
+  color: var(--accent);
+  padding: 4px 20px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--panel);
+}
+
+.timer.running { color: #6be27a; }
+.timer.done { color: var(--team-a); }
+
+.board-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.tile {
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: 0.02em;
+  text-align: center;
+  padding: 22px 8px;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  color: var(--text);
+  cursor: pointer;
+  overflow-wrap: anywhere; /* let long words (SKYSCRAPER, SCUBA DIVER) wrap, not overflow */
+  transition: transform 0.08s ease, background 0.15s ease;
+}
+
+.tile:hover:not(:disabled) { transform: translateY(-2px); border-color: var(--accent); }
+.tile:disabled { cursor: default; }
+
+.tile.spy { cursor: pointer; }
+.tile.spy.team-a { background: rgba(214, 84, 63, 0.28); border-color: var(--team-a); }
+.tile.spy.team-b { background: rgba(47, 125, 224, 0.28); border-color: var(--team-b); }
+.tile.spy.team-neutral { background: rgba(92, 103, 116, 0.28); border-color: var(--neutral); }
+.tile.spy.team-assassin { background: var(--assassin); border-color: var(--team-a); color: var(--team-a); }
+.tile.spy.revealed { opacity: 0.35; }
+
+.tile.revealed.team-a { background: var(--team-a); border-color: var(--team-a); color: #fff; }
+.tile.revealed.team-b { background: var(--team-b); border-color: var(--team-b); color: #fff; }
+.tile.revealed.team-neutral { background: var(--neutral); border-color: var(--neutral); color: #fff; }
+.tile.revealed.team-assassin { background: var(--team-a); border-color: var(--team-a); color: #fff; }
+
+.controls { display: flex; gap: 10px; flex-wrap: wrap; }
+
+.legend { display: flex; gap: 18px; align-items: center; color: var(--muted); font-size: 13px; flex-wrap: wrap; }
+
+.swatch {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border-radius: 4px;
+  margin-right: 6px;
+  vertical-align: middle;
+}
+
+.swatch.team-a { background: var(--team-a); }
+.swatch.team-b { background: var(--team-b); }
+.swatch.team-neutral { background: var(--neutral); }
+.swatch.team-assassin { background: var(--assassin); border: 1px solid var(--team-a); }
+
+/* --- Phase banner --- */
+
+.phase-banner {
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 700;
+  font-size: 20px;
+  letter-spacing: 0.04em;
+  text-align: center;
+  text-transform: uppercase;
+  padding: 14px 16px;
+  border-radius: 10px;
+  margin-bottom: 20px;
+  border: 1px solid var(--line);
+  color: #fff;
+}
+.phase-banner.team-a { background: var(--team-a); border-color: var(--team-a); }
+.phase-banner.team-b { background: var(--team-b); border-color: var(--team-b); }
+
+/* End state: a win pulses in the team's color; the assassin ends the game. */
+.phase-banner.ended {
+  font-size: 26px;
+  padding: 20px 16px;
+}
+.phase-banner.ended.team-a,
+.phase-banner.ended.team-b {
+  animation: win-pulse 0.9s ease-in-out infinite;
+}
+.phase-banner.ended.assassin {
+  background: #14171b;
+  border-color: var(--team-a);
+  color: var(--team-a);
+}
+@keyframes win-pulse {
+  0%, 100% { filter: brightness(1); transform: scale(1); }
+  50% { filter: brightness(1.25); transform: scale(1.02); }
+}
+
+/* --- Shot button + tally --- */
+
+.btn.shot {
+  background: #6b3f14;
+  color: var(--accent);
+  border: 1px solid var(--accent);
+}
+.btn.shot:hover { background: #7d4a18; }
+
+.tally {
+  margin-top: 14px;
+  color: var(--muted);
+  font-size: 14px;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.rule-note {
+  margin: 8px 0 0;
+  color: var(--accent);
+  font-size: 13px;
+}
+
+/* --- Setup: QR block + timer fields --- */
+
+.qr-block {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding: 12px;
+  background: #0e131a;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+.qr { width: 120px; height: 120px; border-radius: 6px; background: #fff; padding: 4px; }
+.qr-cap { font-size: 12px; color: var(--muted); line-height: 1.5; }
+.qr-cap code { font-size: 11px; padding: 1px 5px; }
+
+/* Share hub link blocks */
+.share-links { display: flex; flex-direction: column; gap: 10px; min-width: 0; flex: 1; }
+.share-url {
+  display: block;
+  overflow-wrap: anywhere;
+  font-size: 12px;
+  padding: 6px 8px;
+}
+.share-links .linkrow { margin: 0; }
+
+/* --- Click feedback --- */
+/* Immediate "press" dip, plus a brightness flash so a tap is unmistakable
+   even when the resulting state change is subtle or a no-op. */
+.btn { transition: transform 0.08s ease, filter 0.12s ease; }
+.btn:active:not(:disabled) { transform: scale(0.94); }
+.tile:active:not(:disabled) { transform: scale(0.96); }
+
+@keyframes click-flash {
+  0%   { filter: brightness(1.75); }
+  100% { filter: brightness(1); }
+}
+.btn.flash, .tile.flash { animation: click-flash 0.35s ease-out; }
+
+/* --- Mobile (phones, e.g. spymaster on their handset) --- */
+@media (max-width: 600px) {
+  .wrap { padding: 16px 12px 40px; }
+  .board-wrap { max-width: 100%; }
+
+  .top-row { flex-wrap: wrap; gap: 10px; margin-bottom: 12px; }
+  h1 { font-size: 20px; }
+  .timer { font-size: 30px; padding: 4px 14px; }
+
+  .phase-banner { font-size: 15px; padding: 10px 12px; margin-bottom: 14px; }
+
+  .board-grid { gap: 6px; margin-bottom: 18px; }
+  .tile { padding: 12px 3px; font-size: 11px; border-radius: 8px; }
+
+  .controls { gap: 8px; }
+  .controls .btn { flex: 1 1 auto; text-align: center; }
+
+  .legend { gap: 12px; font-size: 12px; }
+  .sub { font-size: 13px; }
+}
