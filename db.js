@@ -3,7 +3,8 @@ const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
 
-const db = new Database(path.join(__dirname, 'speednames.db'));
+const DB_PATH = process.env.DB_PATH || path.join(__dirname, 'speednames.db');
+const db = new Database(DB_PATH);
 db.pragma('journal_mode = WAL');
 
 const DEFAULT_TURN_SECONDS = 30;
