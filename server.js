@@ -134,7 +134,7 @@ app.get('/', (req, res) => {
     <div class="wrap narrow">
       <div class="title-row">
         <h1>Speednames</h1>
-        <span class="hello-tag">Hello world</span>
+        <span class="hello-tag">rahul bhatt</span>
       </div>
       <p class="sub">A fast party variant of Codenames. Create a game, then share the links — each game is private to whoever holds its link.</p>
       <div class="card">
