@@ -1,7 +1,7 @@
 # Quiz Night (lab)
 A reusable, host-led trivia board with 5 categories and 25 questions. Start at the home page, choose a title, 2–8 team names, a host password (8–128 characters), a question JSON pack, and optional shot-question count (default 4). Keep the resulting game link and password.
 
-Players use the game link or enter its 16-character code on the home page. Player views are read-only and refresh automatically. The host signs in from the same game page. Answers are spoken and judged in person. Use a separate device for a shared audience display; the signed-in host sees answers.
+Players use the game link or enter its 16-character code on the home page. Player views are read-only and refresh automatically. The host signs in from the same game page. Answers are spoken and judged in person. The host screen can be cast to the audience. Answers start collapsed under Reveal answer. Keep them hidden while teams can still steal; scoring a correct answer or finishing the question reveals the answer.
 
 ## Rules
 - Teams select in a fixed rotation. Correct answers earn the question value; ordinary misses cost nothing.
@@ -20,7 +20,7 @@ The sample pack is for Rahul’s party; the app itself accepts any event title a
 Uses a separate SQLite trivia.db with trivia_games and trivia_sessions tables. Game snapshots include scores, turn, clues, hidden shot selections, and undo history.
 Location: TRIVIA_DATA_DIR if set, otherwise the directory of DB_PATH, otherwise ./data. The lab unit supplies DB_PATH in /var/lib/speednames-lab, so trivia.db lives there alongside (but independently of) the existing Speednames database.
 Passwords use scrypt with individual random salts. Session tokens are random, hashed in the database, expire after seven days, and use HttpOnly/SameSite cookies with Secure over HTTPS. Create/login endpoints have an IP rate limit. There is no password-reset flow; keep the host password.
-Player APIs expose only the current question, revealed answers, category names, points, and scores. Future questions, specials, shot selections, and host answers are excluded. The starter template is public sample content; private packs are available only to their host.
+Player APIs expose only the current question, revealed answers, category names, points, and scores. Future questions, specials, shot selections, and host answers are excluded. The starter template is public sample content; private packs are available only through the authenticated host API.
 
 ## Development
 npm ci

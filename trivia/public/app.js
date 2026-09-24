@@ -32,9 +32,10 @@ async function setup(){
 }
 function button(label,action,extra=''){return '<button data-action="'+action+'" '+extra+'>'+label+'</button>';}
 function draw(){
+  const optionsOpen=!!document.querySelector('.game-options')?.open;
   const s=state,a=s.active,finished=s.used.length===25,who=s.teams[s.turn].name;
   document.title=s.title+' · Quiz Night';
-  let html='<section class="topline"><div><p class="pill">' + (s.host ? 'Host' : 'Player view') + '</p><h1 class="game-name">'+esc(s.title)+'</h1><span class="muted">'+s.used.length+' / 25 questions complete</span></div><div class="actions"><button id="copy">Copy game link</button>'+(s.host?'<button id="logout">Player view</button>':'<button class="primary" id="unlock">Host sign in</button>')+'</div></section>';
+  let html='<section class="topline"><div><h1 class="game-name">'+esc(s.title)+'</h1><span class="muted">'+s.used.length+' / 25</span></div><details class="game-options"><summary>Options</summary><div class="actions"><button id="copy">Copy game link</button>'+(s.host?button('Undo','undo',s.canUndo?'':'disabled')+'<button id="logout">Sign out</button>':'<button id="unlock">Host sign in</button>')+'</div><p class="share">Game code: '+id+'</p><a class="share" href="/g/'+id+'">'+esc(location.origin+'/g/'+id)+'</a></details></section>';
   if(finished){
     const top=Math.max(...s.teams.map(t=>t.score)), winners=s.teams.filter(t=>t.score===top).map(t=>t.name);
     html+='<section class="win"><h2>'+esc(winners.join(' & '))+(winners.length>1?' tie!':' wins!')+'</h2><p>'+top.toLocaleString()+' points</p><a href="/" class="button primary">Create another game</a></section>';
@@ -45,19 +46,19 @@ function draw(){
   if(a){
     html+='<section class="clue"><p class="eyebrow">'+esc(a.category)+' · '+a.points.toLocaleString()+' points'+(a.multiplier===2?' · double stakes':'')+'</p>';
     if(a.phase==='shot'){
-      html+='<h2>Team shot!</h2><p class="answer">'+esc(who)+'</p><p class="muted">Take a shot together, choose any beverage, or sit this one out.</p>'+(s.host?button('Continue to question','continue','class="primary"'):'<p>Waiting for the host to open the question.</p>');
+      html+='<h2>Team shot!</h2><p class="answer">'+esc(who)+'</p><p class="muted">Take a shot together, choose any beverage, or sit this one out.</p>'+(s.host?button('Continue','continue','class="primary"'):'<p>Waiting for the host to open the question.</p>');
     }else if(a.phase==='wager'){
       html+='<h2>Double or Nothing</h2><p>'+esc(who)+', choose your stakes before seeing the question.</p><p class="muted">Normal: win '+a.points+' or lose nothing.<br>Double: win '+(a.points*2)+' or lose '+(a.points*2)+'. No steals.</p>'+(s.host?'<div class="actions">'+button('Normal stakes','wager','data-multiplier="1"')+button('Double or Nothing','wager','data-multiplier="2" class="primary"')+'</div>':'<p>Waiting for the team’s choice.</p>');
     }else{
       html+='<h2>'+esc(a.question)+'</h2>';
-      if(a.phase==='resolved') html+='<p class="answer">'+esc(a.answer)+'</p><p>'+esc(a.result)+'</p>'+(s.host?button(s.used.length===24?'Finish game':'Back to board · next team','next','class="primary"'):'<p class="muted">Waiting for the host to continue.</p>');
+      if(a.phase==='resolved') html+='<p class="answer">'+esc(a.answer)+'</p><p>'+esc(a.result)+'</p>'+(s.host?button(s.used.length===24?'Finish game':'Next question','next','class="primary"'):'<p class="muted">Waiting for the host to continue.</p>');
       else{
-        if(s.host) html+='<div class="host-answer"><small>Answer · host only</small><p>'+esc(a.answer)+'</p></div>';
+        if(s.host) html+='<details class="answer-toggle"><summary>Reveal answer</summary><p class="answer">'+esc(a.answer)+'</p></details>';
         if(a.phase==='steal' && a.stealing===null){
-          html+='<p>One chance to steal. '+(s.host?'Choose the team that answered first.':'Let the host know if your team has an answer.')+'</p>';
-          if(s.host) html+='<div class="actions">'+s.teams.map((t,i)=>i===s.turn?'':button(esc(t.name),'steal','data-team="'+i+'"')).join('')+button('No steal · reveal answer','pass')+'</div>';
+          html+='<p>'+(s.host?'Who’s stealing?':'One chance to steal.')+'</p>';
+          if(s.host) html+='<div class="actions">'+s.teams.map((t,i)=>i===s.turn?'':button(esc(t.name),'steal','data-team="'+i+'"')).join('')+button('Nobody','pass')+'</div>';
         }else if(s.host){
-          html+='<p>Judging: <strong>'+esc(s.teams[a.phase==='steal'?a.stealing:s.turn].name)+'</strong></p><div class="actions">'+button('Correct','correct','class="primary"')+button(a.phase==='question'&&!a.special?'Miss · open for steal':'Miss · reveal answer','miss')+'</div>';
+          html+='<div class="actions">'+button('Correct','correct','class="primary"')+button('Miss','miss')+'</div>';
         }
       }
     }
@@ -68,13 +69,11 @@ function draw(){
     html+='</section>';
   }
   html+='<section class="teams" aria-label="Scores">'+s.teams.map((t,i)=>'<div class="team '+(i===s.turn&&!finished?'current':'')+'"><strong>'+esc(t.name)+'</strong><div class="score">'+t.score.toLocaleString()+'</div><small>'+(i===s.turn&&!finished?'Selecting team':'Points')+'</small></div>').join('')+'</section>';
-  html+='<p class="share">Game code: <strong>'+id+'</strong> · Player link: <a href="/g/'+id+'" target="_blank" rel="noopener">'+esc(location.origin+'/g/'+id)+'</a></p>';
-  if(s.host) html+='<div class="host-tools"><div class="actions">'+button('Undo last action','undo',s.canUndo?'':'disabled')+'<button id="export">Download this question pack</button></div><p class="help">Host answers are visible here. Use another device for the shared screen.</p></div>';
   app.innerHTML=html;
-  document.querySelector('#copy').onclick=async()=>{try{await navigator.clipboard.writeText(location.origin+'/g/'+id);document.querySelector('#copy').textContent='Link copied';}catch{showError(new Error('Copy the player link shown below the scores.'));}};
+  document.querySelector('.game-options').open=optionsOpen;
+  document.querySelector('#copy').onclick=async()=>{try{await navigator.clipboard.writeText(location.origin+'/g/'+id);document.querySelector('#copy').textContent='Link copied';}catch{showError(new Error('Copy the game link in Options.'));}};
   document.querySelector('#unlock')?.addEventListener('click',()=>{document.querySelector('#login-error').textContent='';document.querySelector('#login').showModal();document.querySelector('#host-password').focus();});
   document.querySelector('#logout')?.addEventListener('click',async()=>{try{await api('/api/games/'+id+'/logout',{});last='';await refresh();}catch(e){showError(e);}});
-  document.querySelector('#export')?.addEventListener('click',async()=>{try{download(await api('/api/games/'+id+'/pack'));}catch(e){showError(e);}});
   app.querySelectorAll('[data-action]').forEach(b=>b.addEventListener('click',async()=>{
     if(busy)return;busy=true;error.textContent='';
     app.querySelectorAll('[data-action]').forEach(x=>x.disabled=true);

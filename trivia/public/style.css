@@ -91,3 +91,12 @@ pre { overflow: auto; padding: 12px; background: #eee; font-size: .875rem; }
   .teams { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
   .clue { padding: 24px 14px; }
 }
+
+.game-options { margin: 0; max-width: 100%; }
+.game-options > summary { text-align: right; }
+.game-options[open] { padding: 12px; border: 1px solid var(--line); border-radius: 6px; background: #fff; }
+.game-options .actions { margin: 12px 0; }
+.game-options .share { margin: 8px 0 0; }
+.answer-toggle { margin: 20px 0; }
+.answer-toggle summary { color: var(--accent); padding: 8px; }
+.answer-toggle .answer { margin: 12px 0; }
