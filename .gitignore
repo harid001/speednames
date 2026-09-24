@@ -11,3 +11,7 @@ speednames.db-wal
 
 # OS
 .DS_Store
+
+# Trivia runtime data
+data/
+trivia.db*

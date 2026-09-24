@@ -1,0 +1,177 @@
+[
+  {
+    "name": "College (Berkeley)",
+    "clues": [
+      {
+        "question": "What is the name of UC Berkeley’s bear mascot?",
+        "answer": "Oski",
+        "points": 200,
+        "special": false
+      },
+      {
+        "question": "Which university does Cal face in the annual football rivalry known as the Big Game?",
+        "answer": "Stanford University",
+        "points": 400,
+        "special": false
+      },
+      {
+        "question": "What is the official name of the Berkeley clock tower nicknamed the Campanile?",
+        "answer": "Sather Tower",
+        "points": 600,
+        "special": false
+      },
+      {
+        "question": "What creek runs through the UC Berkeley campus?",
+        "answer": "Strawberry Creek",
+        "points": 800,
+        "special": true
+      },
+      {
+        "question": "In what year was the University of California founded?",
+        "answer": "1868",
+        "points": 1000,
+        "special": false
+      }
+    ]
+  },
+  {
+    "name": "San Francisco",
+    "clues": [
+      {
+        "question": "Which former island prison in San Francisco Bay is nicknamed “The Rock”?",
+        "answer": "Alcatraz",
+        "points": 200,
+        "special": false
+      },
+      {
+        "question": "Which San Francisco street is famous for its winding block between Hyde and Leavenworth?",
+        "answer": "Lombard Street",
+        "points": 400,
+        "special": false
+      },
+      {
+        "question": "What is the name of the Golden Gate Bridge’s distinctive paint color?",
+        "answer": "International Orange",
+        "points": 600,
+        "special": false
+      },
+      {
+        "question": "How many hairpin turns are on the famous crooked block of Lombard Street?",
+        "answer": "Eight",
+        "points": 800,
+        "special": false
+      },
+      {
+        "question": "In what year did the Golden Gate Bridge first open to the public?",
+        "answer": "1937",
+        "points": 1000,
+        "special": false
+      }
+    ]
+  },
+  {
+    "name": "Random",
+    "clues": [
+      {
+        "question": "How many sides does a hexagon have?",
+        "answer": "Six",
+        "points": 200,
+        "special": false
+      },
+      {
+        "question": "What is the largest planet in our solar system?",
+        "answer": "Jupiter",
+        "points": 400,
+        "special": false
+      },
+      {
+        "question": "What is the only even prime number?",
+        "answer": "Two",
+        "points": 600,
+        "special": false
+      },
+      {
+        "question": "What is the chemical symbol for gold?",
+        "answer": "Au",
+        "points": 800,
+        "special": false
+      },
+      {
+        "question": "What is the capital of Australia?",
+        "answer": "Canberra",
+        "points": 1000,
+        "special": false
+      }
+    ]
+  },
+  {
+    "name": "Cupertino",
+    "clues": [
+      {
+        "question": "Which technology company was co-founded by Steve Jobs, Steve Wozniak, and Ronald Wayne?",
+        "answer": "Apple",
+        "points": 200,
+        "special": false
+      },
+      {
+        "question": "Cupertino is in which California county?",
+        "answer": "Santa Clara County",
+        "points": 400,
+        "special": false
+      },
+      {
+        "question": "What is the name of Apple’s ring-shaped Cupertino campus?",
+        "answer": "Apple Park",
+        "points": 600,
+        "special": true
+      },
+      {
+        "question": "The theater at Apple Park is named after which Apple co-founder?",
+        "answer": "Steve Jobs",
+        "points": 800,
+        "special": false
+      },
+      {
+        "question": "In what year was Cupertino incorporated as a city?",
+        "answer": "1955",
+        "points": 1000,
+        "special": false
+      }
+    ]
+  },
+  {
+    "name": "Wildcard (replace later)",
+    "clues": [
+      {
+        "question": "In The Hangover, which city do the friends visit for the bachelor party?",
+        "answer": "Las Vegas",
+        "points": 200,
+        "special": false
+      },
+      {
+        "question": "In tennis scoring, what word means zero?",
+        "answer": "Love",
+        "points": 400,
+        "special": false
+      },
+      {
+        "question": "What is the main ingredient in guacamole?",
+        "answer": "Avocado",
+        "points": 600,
+        "special": false
+      },
+      {
+        "question": "In bowling, what is the term for three consecutive strikes?",
+        "answer": "A turkey",
+        "points": 800,
+        "special": false
+      },
+      {
+        "question": "What does the Italian dessert name “tiramisu” roughly mean in English?",
+        "answer": "Pick me up (accept cheer me up)",
+        "points": 1000,
+        "special": false
+      }
+    ]
+  }
+]
