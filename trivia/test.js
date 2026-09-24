@@ -51,7 +51,7 @@ test('all 25 questions complete with correct total scores',()=>{
 test('HTTP auth, privacy, CSRF and restart persistence',async()=>{
  const dir=mkdtempSync(path.join(tmpdir(),'quiz-test-'));let child;
  async function start(){
-  child=spawn(process.execPath,['server.js'],{cwd:path.join(__dirname,'..'),env:{...process.env,TRIVIA_DATA_DIR:dir,PORT:'0',BIND_HOST:'127.0.0.1'},stdio:['ignore','pipe','pipe']});
+  child=spawn(process.execPath,['server.js'],{cwd:path.join(__dirname,'..'),env:{...process.env,TRIVIA_DATA_DIR:dir,BASE_URL:'',PORT:'0',BIND_HOST:'127.0.0.1'},stdio:['ignore','pipe','pipe']});
   let errors='';child.stderr.on('data',c=>errors+=c);
   return new Promise((resolve,reject)=>{const timer=setTimeout(()=>reject(new Error(errors||'Startup timeout')),10000);child.stdout.on('data',c=>{const m=String(c).match(/listening on (\d+)/);if(m){clearTimeout(timer);resolve('http://127.0.0.1:'+m[1]);}});child.once('exit',code=>{clearTimeout(timer);reject(new Error('Exit '+code+errors));});});
  }
@@ -59,19 +59,59 @@ test('HTTP auth, privacy, CSRF and restart persistence',async()=>{
  try{
   let base=await start();
   async function req(route,body,cookie){const r=await fetch(base+route,{method:body===undefined?'GET':'POST',headers:{'Content-Type':'application/json',...(cookie?{Cookie:cookie}:{})},body:body===undefined?undefined:JSON.stringify(body)});return{status:r.status,json:await r.json(),cookie:r.headers.get('set-cookie')?.split(';')[0],headers:r.headers};}
-  const created=await req('/api/games',{title:'Private night',teams:['One','Two'],categories:template,password:'a-long-test-password',shotCount:4});
-  assert.equal(created.status,201);assert.ok(created.headers.get('set-cookie').includes('HttpOnly'));
+  const pack=structuredClone(template);
+  pack[0].clues[0].media={type:'video',url:'https://media.example/test.mp4'};
+  const created=await req('/api/games',{title:'Private night',teams:['One','Two'],categories:pack,password:'a-long-test-password',shotCount:4});
+  assert.equal(created.status,201);assert.ok(created.headers.get('content-security-policy').includes("media-src 'self' https:"));assert.ok(created.headers.get('set-cookie').includes('HttpOnly'));
   const route='/api/games/'+created.json.id,cookie=created.cookie;
-  assert.equal((await req(route)).json.host,false);assert.equal((await req(route,undefined,cookie)).json.host,true);
+  assert.equal((await req(route)).json.host,false);assert.equal((await req(route,undefined,cookie)).json.host,true);assert.equal((await req(route+'?view=player',undefined,cookie)).json.host,false);
   assert.equal((await req(route+'/action',{action:'select',clue:'0-0',version:0})).status,401);assert.equal((await req(route+'/pack')).status,401);
   let state=(await req(route+'/action',{action:'select',clue:'0-0',version:0},cookie)).json;
   if(state.active.phase==='shot')state=(await req(route+'/action',{action:'continue',version:state.version},cookie)).json;
   assert.equal((await req(route)).json.active.answer,undefined);
   state=(await req(route+'/action',{action:'correct',version:state.version},cookie)).json;assert.equal(state.teams[0].score,200);
-  assert.equal((await req(route)).json.active.answer,'Oski');assert.equal((await req(route+'/login',{password:'wrong-password'})).status,401);
-  await stop();base=await start();assert.equal((await req(route)).json.teams[0].score,200);assert.equal((await req(route,undefined,cookie)).json.host,true);
+  assert.equal((await req(route)).json.active.answer,'Oski');assert.equal((await req(route)).json.active.media.url,pack[0].clues[0].media.url);assert.equal((await req(route+'/login',{password:'wrong-password'})).status,401);
+  await stop();base=await start();assert.equal((await req(route)).json.teams[0].score,200);assert.deepEqual((await req(route)).json.active.media,pack[0].clues[0].media);assert.equal((await req(route,undefined,cookie)).json.host,true);
   await req(route+'/logout',{},cookie);assert.equal((await req(route,undefined,cookie)).json.host,false);assert.equal((await req(route+'/login',{password:'a-long-test-password'})).status,200);
   const csrf=await fetch(base+'/api/games',{method:'POST',headers:{'Content-Type':'application/json',Origin:'https://other.example'},body:'{}'});assert.equal(csrf.status,403);
+  const qr=await fetch(base+route+'/qr');
+  assert.equal(qr.status,200);assert.ok(qr.headers.get('content-type').startsWith('image/png'));
+  const expected=await require('qrcode').toBuffer(base+'/g/'+created.json.id+'?view=player',{width:360,margin:4,errorCorrectionLevel:'M'});
+  assert.deepEqual(Buffer.from(await qr.arrayBuffer()),expected);
+  assert.equal((await req(route+'?view=player',undefined,cookie)).json.host,false);
   assert.equal((await fetch(base+'/assets/app.js')).status,200);assert.equal((await fetch(base+'/g/'+created.json.id)).status,200);
  }finally{if(child?.exitCode===null)await stop();rmSync(dir,{recursive:true,force:true});}
+});
+
+test('photo and video media validate without changing text-only packs',()=>{
+ const p=structuredClone(template);
+ p[0].clues[0].media={type:'image',url:'https://media.example/photo.jpg',alt:'College campus'};
+ p[0].clues[1].media={type:'video',url:'https://media.example/clip.mp4'};
+ const valid=model.validatePack(p);
+ assert.deepEqual(valid[0].clues[0].media,p[0].clues[0].media);
+ assert.equal(valid[0].clues[1].media.type,'video');
+ assert.equal(valid[1].clues[0].media,undefined);
+ for(const bad of [
+  {type:'iframe',url:'https://example.com/'},
+  {type:'image',url:'javascript:alert(1)'},
+  {type:'video',url:'http://example.com/video.mp4'},
+  {type:'image',url:'https://user:password@example.com/photo.jpg'},
+  {type:'image',url:'not-a-url'},
+  {type:'image',url:'https://example.com/photo.jpg',alt:42}
+ ]) {
+  p[0].clues[0].media=bad;assert.throws(()=>model.validatePack(p));
+ }
+});
+test('media stays hidden before the question including specials and shot prompts',()=>{
+ const g=make(0), photo={type:'image',url:'https://media.example/secret.jpg'};
+ g.categories[0].clues[0].media=photo;
+ assert.ok(!JSON.stringify(model.view(g)).includes(photo.url));
+ open(g,'0-0');assert.deepEqual(model.view(g).active.media,photo);assert.equal(model.view(g).active.answer,undefined);
+ act(g,'miss');assert.deepEqual(model.view(g).active.media,photo);
+ const special=make(0);special.categories[0].clues[3].media=photo;
+ act(special,'select',{clue:'0-3'});assert.equal(model.view(special,true).active.media,undefined);
+ act(special,'wager',{multiplier:2});assert.deepEqual(model.view(special).active.media,photo);
+ const shot=make();const key=shot.shots[0];shot.categories[Number(key[0])].clues[Number(key[2])].media=photo;
+ act(shot,'select',{clue:key});assert.equal(model.view(shot,true).active.media,undefined);
+ act(shot,'continue');assert.deepEqual(model.view(shot).active.media,photo);
 });

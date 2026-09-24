@@ -3,4 +3,5 @@
 <div class="shell"><header><a class="brand" href="/">Quiz Night</a><span id="connection" role="status"></span></header>
 <main id="app"><p>Opening the board…</p></main><p id="error" role="alert"></p></div>
 <dialog id="login"><form id="login-form"><h2>Host controls</h2><p>Enter this game’s host password.</p><label for="host-password">Password</label><input id="host-password" name="password" type="password" minlength="8" maxlength="128" required autocomplete="current-password"><p id="login-error" role="alert"></p><div class="actions"><button type="button" id="cancel-login">Cancel</button><button class="primary">Sign in</button></div></form></dialog>
+<dialog id="share-dialog" aria-labelledby="share-title"><h2 id="share-title">Join the game</h2><img id="join-qr" width="360" height="360" alt="Scan to open the player view"><p id="qr-error" class="help" hidden>Could not load the QR code. Use the link below.</p><p><a id="player-link"></a></p><div class="actions"><button id="copy">Copy link</button><button id="close-share" class="primary">Done</button></div></dialog>
 </body></html>

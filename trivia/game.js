@@ -1,6 +1,15 @@
 const { randomInt } = require('node:crypto');
 function check(ok, message) { if (!ok) throw new Error(message); }
 function text(v, max = 100) { check(typeof v === 'string' && v.trim().length > 0 && v.length <= max, 'Please check text fields and their lengths.'); return v.trim(); }
+function validateMedia(media) {
+  if (media === undefined || media === null) return undefined;
+  check(media && typeof media === 'object' && !Array.isArray(media) && ['image', 'video'].includes(media.type), 'Media type must be image or video.');
+  const raw = text(media.url, 2048);
+  let url;
+  try { url = new URL(raw); } catch { throw new Error('Media needs a direct HTTPS link to a photo or video.'); }
+  check(url.protocol === 'https:' && !url.username && !url.password, 'Media needs a direct HTTPS link without embedded credentials.');
+  return { type: media.type, url: url.href, ...(media.alt !== undefined ? { alt: text(media.alt, 300) } : {}) };
+}
 function validatePack(input) {
   check(Array.isArray(input) && input.length === 5, 'The pack needs exactly five categories.');
   const pack = input.map(c => {
@@ -8,7 +17,8 @@ function validatePack(input) {
     return { name: text(c.name, 60), clues: c.clues.map(q => {
       check(q && Number.isInteger(q.points) && q.points > 0 && q.points <= 10000, 'Points must be whole numbers from 1 to 10,000.');
       check(typeof q.special === 'boolean', 'Each question needs special: true or false.');
-      return { question: text(q.question, 1500), answer: text(q.answer, 1000), points: q.points, special: q.special };
+      const media = validateMedia(q.media);
+      return { question: text(q.question, 1500), answer: text(q.answer, 1000), points: q.points, special: q.special, ...(media ? { media } : {}) };
     }) };
   });
   check(pack.flatMap(c => c.clues).filter(q => q.special).length === 2, 'Mark exactly two questions as special.');
@@ -76,6 +86,7 @@ function view(g, host = false) {
     active = { ...a, category: g.categories[Number(a.id[0])].name, points: q.points, special: q.special, shot: g.shots.includes(a.id) };
     if (!['shot','wager'].includes(a.phase)) {
       active.question = q.question;
+      if (q.media) active.media = q.media;
       if (host || a.phase === 'resolved') active.answer = q.answer;
     }
   }

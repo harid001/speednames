@@ -29,3 +29,31 @@ PORT=3000 node server.js
 
 The old Speednames assets and db.js remain for lab recovery and compatibility with the lab verification skill; server.js now starts Quiz Night. This branch must not be merged into production.
 Deploy through /home/linuxuser/.codex/skills/speednames-lab/scripts/verify.sh and the existing speednames-lab-deploy wrapper after commit and push. No host configuration changes are required.
+
+## Photos and videos
+Add an optional media object to any clue in the JSON pack:
+
+```json
+{
+  "question": "Where was this photo taken?",
+  "answer": "Your answer",
+  "points": 200,
+  "special": false,
+  "media": {
+    "type": "image",
+    "url": "https://your-media-host.example/photo.jpg",
+    "alt": "A photo of the location"
+  }
+}
+```
+
+Use type "video" with a direct HTTPS video-file URL (MP4 is a good choice; support depends on the browser and video encoding). Photos can use browser-supported formats such as JPEG, PNG, WebP, or GIF. "alt" is optional descriptive text; avoid putting the answer in it.
+
+Media links must be accessible to players without signing in. YouTube pages, Google Drive preview links, and other webpage URLs are not direct media files. This version links to hosted media; it does not upload local photo/video files.
+
+Media appears only once the question opens, after the shot prompt or stakes selection. Videos have normal play/pause, seeking, volume and fullscreen controls; playback is manual and independent on each device. Casting the host phone shows that phone's playback. Broken media shows an open-link fallback without blocking the question.
+
+New packs are applied when creating a game; existing games keep their original questions.
+
+## Joining by QR code
+Open Options → Show QR code to display a large code for the audience to scan. It links directly to the read-only player view without host credentials. Copy link provides the same player URL. Even a browser with an existing host session enters player view through this link; Host sign in restores controls after password verification.

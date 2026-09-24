@@ -1,4 +1,5 @@
 const express = require('express');
+const QRCode = require('qrcode');
 const Database = require('better-sqlite3');
 const { randomBytes, scryptSync, timingSafeEqual, createHash } = require('node:crypto');
 const { mkdirSync, readFileSync } = require('node:fs');
@@ -16,7 +17,7 @@ app.disable('x-powered-by');
 app.use(express.json({ limit: '100kb' }));
 app.use((req,res,next) => {
   res.set({ 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff', 'Referrer-Policy': 'no-referrer',
-    'Content-Security-Policy': "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; frame-ancestors 'none'; base-uri 'none'; form-action 'self'" });
+    'Content-Security-Policy': "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: https:; media-src 'self' https:; frame-ancestors 'none'; base-uri 'none'; form-action 'self'" });
   if (req.method === 'POST' && req.get('origin') && req.get('origin') !== (req.protocol + '://' + req.get('host'))) return res.status(403).json({ error: 'Request origin not allowed.' });
   next();
 });
@@ -59,7 +60,12 @@ app.post('/api/games',limit,(req,res) => {
   db.prepare('INSERT INTO trivia_games VALUES (?,?,?,?)').run(id,salt,scryptSync(p,salt,64).toString('hex'),JSON.stringify(g));
   grant(req,res,id); res.status(201).json({id});
 });
-app.get('/api/games/:id',load,(req,res) => res.json(model.view(req.game,req.isHost)));
+app.get('/api/games/:id',load,(req,res) => res.json(model.view(req.game,req.isHost && req.query.view !== 'player')));
+app.get('/api/games/:id/qr',load,(req,res,next) => {
+  const origin = (process.env.BASE_URL || req.protocol + '://' + req.get('host')).replace(/\/$/, '');
+  QRCode.toBuffer(origin + '/g/' + req.params.id + '?view=player', { width: 360, margin: 4, errorCorrectionLevel: 'M' })
+    .then(buffer => res.type('png').send(buffer)).catch(next);
+});
 app.post('/api/games/:id/login',limit,load,(req,res) => {
   const p=password(req.body.password);
   if (!timingSafeEqual(scryptSync(p,req.gameRow.salt,64),Buffer.from(req.gameRow.password_hash,'hex'))) return res.status(401).json({error:'Incorrect host password.'});
